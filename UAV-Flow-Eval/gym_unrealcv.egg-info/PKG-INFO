@@ -1,0 +1,16 @@
+Metadata-Version: 2.4
+Name: gym_unrealcv
+Version: 2.0.3
+Summary: Gymnasium environments for UnrealCV
+Author: Kui Wu
+Author-email: Fangwei Zhong <zfw1226@gmail.com>
+Requires-Dist: gym==0.10.9
+Requires-Dist: matplotlib
+Requires-Dist: numpy
+Requires-Dist: unrealcv>=1.1.5
+Requires-Dist: wget
+Requires-Dist: opencv-python
+Requires-Dist: simple_pid
+Requires-Dist: pynput
+Requires-Dist: docker
+Requires-Dist: modelscope
