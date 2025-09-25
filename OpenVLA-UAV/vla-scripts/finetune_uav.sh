@@ -1,0 +1,13 @@
+torchrun --standalone --nnodes 1 --nproc-per-node 8 vla-scripts/finetune_uav.py \
+  --vla_path /path/to/pretrained_openvla_model \
+  --data_root_dir /path/to/dataset \
+  --run_root_dir /path/to/run_name \
+  --adapter_tmp_dir /path/to/run_name/adapter-tmp \
+  --lora_rank 32 \
+  --batch_size 4 \
+  --grad_accumulation_steps 1 \
+  --learning_rate 5e-4 \
+  --image_aug False \
+  --wandb_project openvla \
+  --wandb_entity your-wandb-username \
+  --save_steps 20000
