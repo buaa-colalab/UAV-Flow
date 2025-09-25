@@ -1,0 +1,1 @@
+- You can convert the .parquet file into a folder format by running prepare_data.py

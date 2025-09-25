@@ -9,7 +9,9 @@
 ## ✅ Evaluation Environment
 - **UAV-Flow-Eval** (based on UnrealZoo Gym)  
 
+## ✅ OpenVLA-UAV
+- Code
+- Checkpoint
 
 ## ⏳ Coming Soon
-- **OpenVLA-UAV**  
 - **Pi-0-UAV**
