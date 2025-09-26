@@ -11,7 +11,7 @@
 
 ## ✅ OpenVLA-UAV
 - Code
-- Checkpoint
+- [Checkpoint](https://huggingface.co/wangxiangyu0814/OpenVLA-UAV/tree/main)
 
 ## ⏳ Coming Soon
 - **Pi-0-UAV**
