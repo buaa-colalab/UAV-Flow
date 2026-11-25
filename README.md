@@ -52,13 +52,26 @@ evaluator communicate through HTTP.
 
 ### Prepare the FlowVLA Model
 
+#### Install FlowVLA
+
+From the repository root:
+
+```bash
+cd flowVLA
+conda create -n flowvla python=3.12 -y
+conda activate flowvla
+pip install -r requirements.txt
+pip install -e .
+cd ..
+```
+
 #### Prepare the Training Data
 
 Download the Parquet release from [UAV-Flow (real-world flights)](https://huggingface.co/datasets/wangxiangyu0814/UAV-Flow) or [UAV-Flow-Sim (simulated flights)](https://huggingface.co/datasets/wangxiangyu0814/UAV-Flow-Sim).
 For example, to prepare UAV-Flow-Sim, run from the repository root:
 
 ```bash
-python -m pip install huggingface_hub datasets Pillow tqdm
+python -m pip install datasets Pillow tqdm
 hf download wangxiangyu0814/UAV-Flow-Sim --repo-type dataset \
   --include "*.parquet" --local-dir /path/to/UAVFlow-parquet
 ```
@@ -99,11 +112,7 @@ See the [FlowVLA README](flowVLA/README.md) for detailed configuration, training
 and inference instructions.
 
 ```bash
-cd flowVLA # From the repository root
-conda create -n flowvla python=3.12 -y
-conda activate flowvla
-pip install -r requirements.txt
-pip install -e .
+cd flowVLA # From the repository root, in the FlowVLA environment.
 
 hf download Qwen/Qwen3-VL-2B-Instruct \
   --local-dir /path/to/models/Qwen3-VL-2B-Instruct
@@ -146,7 +155,7 @@ cd UAV-Flow-Eval
 python3.11 -m venv .venv
 source .venv/bin/activate
 python -m pip install 'pip==24.0' 'setuptools==79.0.1' 'wheel==0.48.0'
-python -m pip install '.[dev]'
+python -m pip install .
 cp configs/example.toml configs/local.evaluation.toml
 ```
 
@@ -167,7 +176,6 @@ uav-flow evaluate --settings configs/local.evaluation.toml --model-name flowvla
 
 The evaluator writes trajectories, frames, and action logs under the output
 directory, with overall and task-category scores in `metrics.json`.
-See the [evaluation guide](UAV-Flow-Eval/README.md) for setup and output details.
 
 <details>
 <summary><strong>🔁 Launch simulator services for RL training</strong></summary>
@@ -236,6 +244,8 @@ please consider citing the following papers.
   url={https://arxiv.org/abs/2611.17163}
 }
 ```
+
+<a id="original-paper"></a>
 
 ### UAV-Flow Colosseo · NeurIPS 2025
 
