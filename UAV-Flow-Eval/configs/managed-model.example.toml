@@ -1,0 +1,15 @@
+# Optional managed QwenOFT-compatible model example. Replace external paths.
+[evaluation]
+checkpoint = "../external/models/policy/model.pth"
+model_repo = "../external/starVLA"
+config = "../external/starVLA/starVLA/config/training/internvla_cotrain_oft.yaml"
+base_vlm = "../external/models/base_vlm"
+# stats_path = "../external/models/policy/normalization.json"
+model_gpu = 0
+model_port = 6888
+model_name = "single_model"
+output = "../outputs/model_run_01"
+ue_package = "../external/Collection_LinuxNoEditor"
+# ue_user = "simulator"
+graphics_adapter = 0
+ue_port = 9488

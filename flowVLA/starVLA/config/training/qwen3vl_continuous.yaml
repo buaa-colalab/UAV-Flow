@@ -1,0 +1,67 @@
+run_id: qwen3vl_continuous
+run_root_dir: ./results
+seed: 42
+trackers:
+- jsonl
+- wandb
+wandb_entity: null
+wandb_project: flowvla
+is_debug: false
+framework:
+  name: QwenOFT-L1
+  qwenvl:
+    base_vlm: Qwen/Qwen3-VL-2B-Instruct
+    attn_implementation: sdpa
+    model_type: qwen3_vl
+  action_model:
+    action_dim: 4
+    future_action_window_size: 9
+    past_action_window_size: 0
+    action_head_type: continuous
+datasets:
+  vla_data:
+    dataset_py: uav_datasets
+    data_root_dir: /path/to/UAVFlow
+    per_device_batch_size: 16
+    num_workers: 4
+trainer:
+  max_train_steps: 100000
+  num_warmup_steps: 10000
+  save_interval: 20000
+  use_lora: true
+  lora:
+    r: 32
+    lora_alpha: 16
+    lora_dropout: 0.05
+    target_modules:
+    - q_proj
+    - v_proj
+    - k_proj
+    - o_proj
+    - up_proj
+    - down_proj
+    - gate_proj
+    - qkv
+    - proj
+    - linear_fc1
+    - linear_fc2
+  learning_rate:
+    base: 1.0e-05
+    qwen_vl_interface: 1.0e-05
+    action_model: 0.0001
+    lora: 0.0002
+  lr_scheduler_type: cosine_with_min_lr
+  scheduler_specific_kwargs:
+    min_lr: 5.0e-07
+  freeze_modules: ''
+  logging_frequency: 10
+  gradient_clipping: 1.0
+  gradient_accumulation_steps: 1
+  optimizer:
+    name: AdamW
+    betas:
+    - 0.9
+    - 0.95
+    eps: 1.0e-08
+    weight_decay: 1.0e-08
+  enable_gradient_checkpointing: true

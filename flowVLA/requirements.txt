@@ -1,0 +1,49 @@
+# Shared UAVFlow training and inference environment for Qwen3-VL and Qwen3.5.
+# Reference platform: Python 3.12, Linux, CUDA 12.6; attention backend: SDPA.
+# Versions match the validated runtime. Install this file, then `pip install -e .`.
+
+# PyTorch and attention kernels
+torch==2.7.1
+torchvision==0.22.1
+triton==3.3.1
+flash-linear-attention==0.4.1
+fla-core==0.4.1
+
+# Backbones, tokenizers and training
+transformers==5.3.0
+tokenizers==0.22.2
+huggingface-hub==1.33.0
+safetensors==0.8.0
+peft==0.19.1
+accelerate==1.16.0
+deepspeed==0.18.9
+
+# Images, video and numerical operations
+numpy==1.26.4
+scipy==1.17.1
+pillow==13.0.0
+av==19.0.2
+qwen-vl-utils==0.0.14
+einops==0.8.2
+timm==1.0.31
+
+# Configuration and logging
+omegaconf==2.4.0
+PyYAML==6.0.3
+wandb==0.31.1
+rich==15.0.0
+tqdm==4.70.1
+
+# HTTP inference and clients
+Flask==3.1.2
+Werkzeug==3.1.9
+requests==2.34.2
+
+# Shared runtime pins keep fresh installs aligned with the validated environment.
+certifi==2026.10.23
+charset-normalizer==3.5.2
+filelock==4.2.4
+MarkupSafe==3.0.3
+packaging==26.3
+regex==2026.11.19
+setuptools==78.1.0

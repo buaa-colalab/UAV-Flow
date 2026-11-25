@@ -1,0 +1,11 @@
+# Direct dependency baseline verified on Python 3.11. No model/GPU dependencies.
+gym==0.10.9
+unrealcv==1.3.2
+numpy==1.26.4
+scipy==1.17.1
+matplotlib==3.11.1
+opencv-python==4.11.0.86
+Pillow==12.3.0
+requests==2.34.2
+Flask==3.1.2
+simple-pid==2.0.1

@@ -1,172 +1,243 @@
 <div align="center">
 
-<h1>UAV-Flow Colosseo: A Real-World Benchmark for Flying-on-a-Word UAV Imitation Learning</h1>
+<h1>UAV-Flow</h1>
+<p><strong>Data, policies, and closed-loop evaluation for language-guided UAV control.</strong></p>
 
-<div>
-    Xiangyu Wang&emsp;
-    Donglin Yang&emsp;
-    Yue Liao&emsp;
-    Wenhao Zheng&emsp;
-    Bin Dai&emsp;
-    Hongsheng Li&emsp;
-    Si Liu&emsp;
-    et al.
+<p>
+  <a href="https://arxiv.org/abs/2611.17163v1"><img src="https://img.shields.io/badge/arXiv-2611.17163-b31b1b" alt="UAV-Flow++ on arXiv"></a>
+  <a href="#original-paper"><img src="https://img.shields.io/badge/NeurIPS-2025-684F9B" alt="NeurIPS 2025"></a>
+  <a href="https://huggingface.co/datasets/wangxiangyu0814/UAV-Flow"><img src="https://img.shields.io/badge/Dataset-UAV--Flow-orange" alt="UAV-Flow dataset"></a>
+  <a href="https://huggingface.co/datasets/wangxiangyu0814/UAV-Flow-Sim"><img src="https://img.shields.io/badge/Dataset-UAV--Flow--Sim-orange" alt="UAV-Flow-Sim dataset"></a>
+</p>
+
+<p>
+  <a href="#quick-start">🚀 Quick Start</a> &nbsp;｜&nbsp;
+  <a href="#data-and-models">📦 Data &amp; Models</a> &nbsp;｜&nbsp;
+  <a href="#documentation">📚 Documentation</a> &nbsp;｜&nbsp;
+  <a href="#citation">📝 Citation</a>
+</p>
 </div>
 
-<div>
-    <strong>NeurIPS 2025</strong>
-</div>
+## 📝 Introduction
 
-<div>
-    <h4 align="center">
-        <a href="https://huggingface.co/datasets/wangxiangyu0814/UAV-Flow/tree/main" target="_blank">
-        <img src="https://img.shields.io/badge/Dataset-UAV--Flow-orange">
-        </a>
-        <a href="https://huggingface.co/datasets/wangxiangyu0814/UAV-Flow-Sim/tree/main" target="_blank">
-        <img src="https://img.shields.io/badge/Dataset-UAV--Flow--Sim-orange">
-        </a>
-        <a href="https://huggingface.co/wangxiangyu0814/OpenVLA-UAV/tree/main" target="_blank">
-        <img src="https://img.shields.io/badge/Checkpoint-OpenVLA--UAV-blue">
-        </a>
-        <a href="#-citation" target="_blank">
-        <img src="https://img.shields.io/badge/Cite-BibTeX-green">
-        </a>
-    </h4>
-</div>
+UAV-Flow connects **real-world and simulated UAV data, policy training, and
+closed-loop evaluation**. Train a policy with FlowVLA or OpenVLA-UAV, serve it
+through HTTP, and evaluate its trajectories in the UnrealZoo-based simulator.
 
-<strong>UAV-Flow provides real-world and simulated UAV trajectories, an UnrealZoo-based evaluation environment, and an OpenVLA-UAV baseline for instruction-conditioned UAV control.</strong>
+[UAV-Flow++](https://arxiv.org/abs/2611.17163v1) presents FlowVLA and Tail-Aware GRPO (TGRPO) for language-guided UAV flight.
 
+<p align="center">
+  <img src="assets/Banner.png" alt="UAV-Flow UAV platforms, environments, and flight tasks" width="100%">
+</p>
 
----
+## ✨ Key Features
 
-</div>
+- **🛩️ Real and simulated flight data.** UAV-Flow and UAV-Flow-Sim provide RGB observations, language instructions, and flight trajectories.
+- **🧠 UAV policy baselines.** FlowVLA supports discrete, continuous, and FAST action heads. OpenVLA-UAV provides the original finetuning baseline.
+- **📊 Closed-loop evaluation.** Connect a model API, run simulator tasks, and collect trajectories, frames, action logs, success rates, and NDTW scores.
+- **🔁 Simulator services for RL.** Launch and manage simulator services for an external RL trainer through the `uav-flow train-env` CLI.
 
-## 📢 News
+<a id="quick-start"></a>
 
-* **[Latest]** UAV-Flow real-world trajectories and UAV-Flow-Sim simulation trajectories are available on Hugging Face.
-* **[Latest]** UAV-Flow-Eval and the OpenVLA-UAV training/evaluation code are included in this repository.
-* **[Coming Soon]** Pi-0-UAV support will be released later.
+## 🚀 Quick Start
 
-## 💡 Highlights
+Use a separate Python environment for each component. The model server and
+evaluator communicate through HTTP.
 
-* **Real and simulated UAV data.** UAV-Flow contains real-world UAV trajectories, while UAV-Flow-Sim provides simulation trajectories for scalable training and evaluation.
-* **Instruction-conditioned evaluation.** UAV-Flow-Eval runs UAV control tasks in UnrealZoo Gym and evaluates generated trajectories with nDTW.
-* **OpenVLA-UAV baseline.** The repository includes OpenVLA-based finetuning code, a Flask inference server, and a released OpenVLA-UAV checkpoint.
+| Component | Python | Setup |
+|---|---|---|
+| FlowVLA | 3.12 | Linux, CUDA 12.6 |
+| UAV-Flow-Eval | 3.11 | Linux x86_64, NVIDIA graphics and Vulkan |
+| OpenVLA-UAV | 3.10 | [Installation guide](OpenVLA-UAV/README.md#installation) |
 
-## 🛠️ Usage
+### Prepare the FlowVLA Model
 
-### Installation
+#### Prepare the Training Data
 
-This repository contains two main Python environments: one for OpenVLA-UAV training/inference and one for UAV-Flow-Eval.
-
-Set up OpenVLA-UAV:
+Download the Parquet release from [UAV-Flow (real-world flights)](https://huggingface.co/datasets/wangxiangyu0814/UAV-Flow) or [UAV-Flow-Sim (simulated flights)](https://huggingface.co/datasets/wangxiangyu0814/UAV-Flow-Sim).
+For example, to prepare UAV-Flow-Sim, run from the repository root:
 
 ```bash
-cd OpenVLA-UAV
-conda create -n openvla python=3.10 -y
-conda activate openvla
-
-conda install pytorch torchvision torchaudio pytorch-cuda=12.4 -c pytorch -c nvidia -y
-pip install -e .
-
-pip install packaging ninja
-ninja --version
-pip install "flash-attn==2.5.5" --no-build-isolation
+python -m pip install huggingface_hub datasets Pillow tqdm
+hf download wangxiangyu0814/UAV-Flow-Sim --repo-type dataset \
+  --include "*.parquet" --local-dir /path/to/UAVFlow-parquet
 ```
 
-Set up UAV-Flow-Eval:
-
-```bash
-cd UAV-Flow-Eval
-conda create -n unrealcv python=3.11 -y
-conda activate unrealcv
-pip install -e .
-```
-
-### Data Preparation
-
-Download the datasets:
-
-* [UAV-Flow](https://huggingface.co/datasets/wangxiangyu0814/UAV-Flow/tree/main): real-world trajectories.
-* [UAV-Flow-Sim](https://huggingface.co/datasets/wangxiangyu0814/UAV-Flow-Sim/tree/main): simulation trajectories.
-
-If you need to convert parquet files into the folder format used by the training code, update the local paths in `dataset_tools/prepare_data.py`, then run:
-
-```bash
-cd dataset_tools
-python prepare_data.py
-```
-
-### Model Preparation
-
-For finetuning, download the pretrained [OpenVLA checkpoint](https://huggingface.co/openvla/openvla-7b).
-
-For evaluation, download the released [OpenVLA-UAV checkpoint](https://huggingface.co/wangxiangyu0814/OpenVLA-UAV/tree/main), then set `model_path` in `OpenVLA-UAV/vla-scripts/openvla_act.py`:
+The training loader reads episode folders. To convert the downloaded Parquet
+files, set the two paths at the bottom of
+[`dataset_tools/prepare_data.py`](dataset_tools/prepare_data.py):
 
 ```python
-cfg = {
-    "gpu_id": 0,
-    "model_path": "/path/to/your/finetuned_model",
-    "http_port": 5007,
-    "unnorm_key": "sim",
-    "do_sample": False,
-}
+parquet_dir = '/path/to/UAVFlow-parquet'  # Downloaded .parquet files.
+train_dir = '/path/to/UAVFlow'           # Output episode folders.
 ```
 
-### Training
-
-Open `OpenVLA-UAV/vla-scripts/finetune_uav.sh` and update all local paths, including the pretrained model path, dataset path, run directory, adapter directory, and Weights & Biases settings.
-
-Then launch finetuning:
+Then run the converter from the repository root:
 
 ```bash
-cd OpenVLA-UAV
-bash vla-scripts/finetune_uav.sh
+python dataset_tools/prepare_data.py
 ```
 
-### Evaluation
-
-Download and extract the packaged UnrealZoo environment:
-
-[Collection_WinNoEditor_0424_25.zip](https://modelscope.cn/datasets/UnrealZoo/UnrealZoo-UE4/file/view/master/Collection_WinNoEditor_0424_25.zip?id=77779&status=2)
-
-Configure the simulator path in:
+The converter groups frames by episode ID, saves them as numbered JPEG files,
+and writes the trajectory logs and language instructions to `log.json`:
 
 ```text
-UAV-Flow-Eval/gym_unrealcv/envs/setting/Track/DowntownWest.json
+/path/to/UAVFlow/
+├── episode_id_1/
+│   ├── 000000.jpg
+│   ├── 000001.jpg
+│   ├── ...
+│   └── log.json
+└── episode_id_2/
+    ├── ...
+    └── log.json
 ```
 
-Update `env_bin_win` to the extracted Unreal environment executable path.
+#### Train a FlowVLA Policy
 
-Start the OpenVLA-UAV inference server:
+See the [FlowVLA README](flowVLA/README.md) for detailed configuration, training,
+and inference instructions.
 
 ```bash
-cd OpenVLA-UAV
-python vla-scripts/openvla_act.py
+cd flowVLA # From the repository root
+conda create -n flowvla python=3.12 -y
+conda activate flowvla
+pip install -r requirements.txt
+pip install -e .
+
+hf download Qwen/Qwen3-VL-2B-Instruct \
+  --local-dir /path/to/models/Qwen3-VL-2B-Instruct
+
+BASE_VLM=/path/to/models/Qwen3-VL-2B-Instruct \
+DATA_ROOT_DIR=/path/to/UAVFlow \
+RUN_ROOT_DIR=./results RUN_ID=flowvla \
+bash scripts/run_scripts/uav_train_qwen3vl_discrete.sh
 ```
 
-In another terminal, run UAV-Flow-Eval:
+#### Launch the Inference Server
+
+In the FlowVLA environment, run from `flowVLA/`. Set `RUN_DIR` to the saved training run containing the model weights and `config.yaml`:
+
+```bash
+RUN_DIR=./results/flowvla \
+STATS_PATH=/path/to/statistics.json \
+CUDA_VISIBLE_DEVICES=0 HTTP_PORT=6070 \
+bash scripts/run_scripts/start_qwen3vl_discrete_server.sh
+```
+
+`STATS_PATH` selects the statistics JSON matching the checkpoint's training
+normalization. Each run saves its statistics alongside its configuration.
+Other action heads use their [matching server scripts](flowVLA/README.md#3-inference).
+
+> **OpenVLA-UAV:** start its [UAV server](OpenVLA-UAV/README.md#inference--evaluation)
+> in the OpenVLA environment, then pass that server's URL to the evaluator.
+> It uses the checkpoint's `norm_stats`, selected by `--unnorm-key sim`.
+
+### Run Closed-Loop Evaluation
+
+See the [UAV-Flow-Eval README](UAV-Flow-Eval/README.md) for detailed simulator
+setup, evaluation configuration, and execution instructions.
+
+For a full simulation, download the [Linux UE scene package](#data-and-models).
+In another terminal, start from the repository root:
 
 ```bash
 cd UAV-Flow-Eval
-python batch_run_act_all.py
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install 'pip==24.0' 'setuptools==79.0.1' 'wheel==0.48.0'
+python -m pip install '.[dev]'
+cp configs/example.toml configs/local.evaluation.toml
 ```
 
-To use a different inference server port:
+Edit the
+`[evaluation]` section of `configs/local.evaluation.toml`:
+
+- `server_url`: the running model API; use `http://127.0.0.1:6070` for the server above.
+- `ue_package`: the extracted scene directory containing `Collection/` and `Engine/`.
+- `graphics_adapter`: the Vulkan adapter index.
+- `output`: a fresh directory for this run.
+
+Paths are relative to the TOML file. When launching as root, set `ue_user` to an
+ordinary account with access to the Python environment, scene package, and output.
 
 ```bash
-python batch_run_act_all.py --server_port 5006
+uav-flow evaluate --settings configs/local.evaluation.toml --model-name flowvla
 ```
 
-After evaluation finishes, compute nDTW metrics:
+The evaluator writes trajectories, frames, and action logs under the output
+directory, with overall and task-category scores in `metrics.json`.
+See the [evaluation guide](UAV-Flow-Eval/README.md) for setup and output details.
+
+<details>
+<summary><strong>🔁 Launch simulator services for RL training</strong></summary>
+
+In the evaluation environment, run from `UAV-Flow-Eval/`:
 
 ```bash
-python metric.py
+cp configs/example.toml configs/local.training.toml
+# Set training.package, output, gpus, ports, and user.
+uav-flow train-env start --settings configs/local.training.toml
 ```
+
+Use `uav-flow train-env --help` for status and stop commands. The RL trainer is
+supplied separately.
+
+</details>
+
+<a id="data-and-models"></a>
+
+## 📦 Data & Models
+
+| Resource | Download |
+|---|---|
+| UAV-Flow real-world trajectories | [Hugging Face](https://huggingface.co/datasets/wangxiangyu0814/UAV-Flow) |
+| UAV-Flow-Sim simulation trajectories | [Hugging Face](https://huggingface.co/datasets/wangxiangyu0814/UAV-Flow-Sim) |
+| OpenVLA-UAV checkpoint | [Hugging Face](https://huggingface.co/wangxiangyu0814/OpenVLA-UAV) |
+| FlowVLA `qwen3vl_discrete`, 80k steps | [Hugging Face](https://huggingface.co/datasets/wangxiangyu0814/UAV-Flow-flowVLA/blob/main/flowvla_pretrain_mixdata_dis_head.pth) |
+| FlowVLA `qwen3vl_discrete` + TGRPO | [Hugging Face](https://huggingface.co/datasets/wangxiangyu0814/UAV-Flow-flowVLA/blob/main/flowvla_tgrpo_mixdata_dis_head.pth) |
+| Flow-Sim Simulator Linux package | [Hugging Face](https://huggingface.co/datasets/wangxiangyu0814/UAV-Flow-Sim-Env/blob/main/Collection_v4_LinuxNoEditor.tar.gz) |
+
+For download commands, Parquet conversion, and the expected episode layout, see
+[Prepare the Training Data](#prepare-the-training-data).
+
+<a id="documentation"></a>
+
+## 📚 Documentation
+
+| Guide | What's inside |
+|---|---|
+| [🧠 FlowVLA](flowVLA/README.md) | Installation, training recipes, normalization statistics, checkpoints, and inference servers |
+| [🛩️ OpenVLA-UAV](OpenVLA-UAV/README.md) | Original baseline installation, finetuning, and UAV inference |
+| [📊 UAV-Flow-Eval](UAV-Flow-Eval/README.md) | Linux simulator setup, closed-loop evaluation, scoring, and training environment services |
+| [📦 Dataset tools](dataset_tools/README.md) | Parquet-to-episode conversion |
+
+## 🗺️ TODO
+
+- [ ] Release the RL training framework.
+
+<a id="citation"></a>
 
 ## 📝 Citation
 
-If you find this work useful, please consider citing our paper:
+If you use UAV-Flow datasets, models, or evaluation tools in your research,
+please consider citing the following papers.
+
+### UAV-Flow++ Report [arxiv](https://arxiv.org/abs/2611.17163v1)
+
+```bibtex
+@misc{yang2026uavflowpp,
+  title={{UAV-Flow++}: A Unified Suite for Benchmarking and Learning Language-Guided UAV Flight},
+  author={Yang, Donglin and Wang, Xiangyu and Zhong, Yantong and Zheng, Wenhao and Ding, Zihan and Liao, Yue and Li, Hongsheng and Xu, Ke and Liu, Si},
+  year={2026},
+  eprint={2611.17163},
+  archivePrefix={arXiv},
+  primaryClass={cs.RO},
+  url={https://arxiv.org/abs/2611.17163}
+}
+```
+
+### UAV-Flow Colosseo · NeurIPS 2025
 
 ```bibtex
 @article{wang2026uav,
@@ -178,10 +249,13 @@ If you find this work useful, please consider citing our paper:
 }
 ```
 
-## 📄 License
+## ⚖️ License & Acknowledgements
 
-This project is licensed under the Apache-2.0 License. See [LICENSE](./LICENSE) for more information.
+Project-authored code uses [Apache-2.0](LICENSE). Project-authored datasets,
+images, and documentation use [CC BY-NC 4.0](LICENSE-CONTENT).
+See [licensing scope](LICENSING.md) for details and exceptions.
 
-## 🙏 Acknowledgement
-
-This project builds on [OpenVLA](https://github.com/openvla/openvla), [UnrealZoo Gym](https://github.com/UnrealZoo/unrealzoo-gym). We thank the maintainers of these projects for releasing their code, models, and simulation resources.
+We build on [OpenVLA](https://github.com/openvla/openvla),
+[StarVLA](https://github.com/starVLA/starVLA), and
+[UnrealZoo Gym](https://github.com/UnrealZoo/unrealzoo-gym). We thank their
+maintainers for sharing code, models, and simulation resources.

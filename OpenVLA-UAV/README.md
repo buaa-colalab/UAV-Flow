@@ -48,20 +48,58 @@ torchrun --standalone --nnodes 1 --nproc-per-node 8 vla-scripts/finetune_uav.py 
 
 ## Inference & Evaluation
 
-If you want to start an OpenVLA server and run evaluation in **UAV-Flow-Eval**, simply run:
+Start the UAV server in the OpenVLA environment, from this directory:
 
 ```bash
-python vla-scripts/openvla_act.py
+CUDA_VISIBLE_DEVICES=0 python vla-scripts/openvla_act.py \
+  --model-path /path/to/merged_uav_checkpoint \
+  --http-port 6888 --unnorm-key sim
 ```
 
-Before running, open openvla_act.py and update the cfg dictionary with your local settings:
+Use a **merged UAV-finetuned checkpoint**, with four action dimensions and the
+matching normalization statistics stored in its `config.json` (`norm_stats`).
+`--unnorm-key` selects that checkpoint's dataset statistics; UAV finetuning uses
+`sim`. For an existing OpenVLA installation, install the server dependency with
+`pip install 'flask>=2.2,<4'`. Flash Attention 2 remains the default; use
+`--attn-implementation sdpa` or `eager` if needed.
+
+In a second terminal, activate the separate
+[UAV-Flow-Eval environment](../UAV-Flow-Eval/README.md#0-installation), change to
+`UAV-Flow-Eval/`, and check the API without starting UE:
 
 ```bash
-cfg = {
-    "gpu_id": 0,                                    
-    "model_path": "/path/to/your/finetuned_model",  
-    "http_port": 5007,                            
-    "unnorm_key": "sim",                          
-    "do_sample": False                       
-}
+uav-flow evaluate --server-url http://127.0.0.1:6888 \
+  --model-name openvla --output ./outputs/openvla_smoke --smoke
 ```
+
+For a closed-loop run:
+
+```bash
+cp configs/example.toml configs/local.openvla.toml
+# Set evaluation.server_url, ue_package, graphics_adapter and a fresh output.
+# Set evaluation.ue_user if launching as root.
+uav-flow evaluate --settings configs/local.openvla.toml --model-name openvla
+```
+
+Use `--server-url` for OpenVLA; the evaluator's managed `--checkpoint` launcher
+is for QwenOFT servers. The two Python environments communicate through HTTP.
+
+`openvla_act.py` exposes stateless `POST /reset` and `POST /predict`. Requests
+contain a base64 RGB image, `instr` and `proprio=[x,y,z,yaw_degrees]` in the
+episode's first-frame coordinate system. It returns one waypoint (`action` has
+shape `[1,4]`) in that same coordinate system, with yaw in radians. The evaluator
+executes it, captures the next image and requests another prediction. The legacy
+state prompt, action decoding and local-to-episode coordinate conversion are
+preserved. `deploy.py` provides the upstream robot `/act` API and is not the UAV
+evaluation entry point.
+
+Offline interface and closed-loop regression checks (no weights or UE required),
+run from the parent `UAV-Flow/` directory in the evaluation environment:
+
+```bash
+python -m unittest discover -s OpenVLA-UAV/tests -v
+```
+
+UAV-Flow-authored code follows [Apache-2.0](../LICENSE); upstream OpenVLA code
+retains its [MIT license](LICENSE). Project-authored documentation follows
+[CC BY-NC 4.0](../LICENSE-CONTENT). See [licensing scope](../LICENSING.md).

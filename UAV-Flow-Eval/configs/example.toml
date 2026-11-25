@@ -1,0 +1,24 @@
+# Copy to local.toml and supply your own external assets/accounts.
+# Paths are relative to this file. No assets or Python environments are bundled.
+[training]
+package = "../external/Collection_LinuxNoEditor"
+output = "../outputs/training_run_01"
+# user = "simulator"             # Required explicitly when invoking as root.
+gpus = [0, 1, 2, 3]               # Vulkan adapters: verify GPU UUID mapping.
+base_port = 5008
+ue_base_port = 9400
+host = "0.0.0.0"
+timeout = 900
+parallel = false
+
+[evaluation]
+server_url = "http://127.0.0.1:6888"
+model_name = "single_model"
+output = "../outputs/model_run_01"  # Must be fresh for an actual evaluation.
+ue_package = "../external/Collection_LinuxNoEditor"
+# ue_user = "simulator"           # Required explicitly when invoking as root.
+graphics_adapter = 0             # Vulkan adapter, not necessarily CUDA GPU 0.
+ue_port = 9488
+model_port = 6888
+start_timeout = 1200
+eval_timeout = 21600

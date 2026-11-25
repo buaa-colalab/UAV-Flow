@@ -1,33 +1,79 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=77,<85", "wheel>=0.45,<1"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "gym_unrealcv"
-description = "Gymnasium environments for UnrealCV"
-dynamic = ["version"]
-dependencies = [
-    "gym==0.10.9",
-    "matplotlib",
-    "numpy",
-    "unrealcv>=1.1.5",
-    "wget",
-    "opencv-python",
-    "simple_pid",
-    "pynput",
-    "docker",
-    "modelscope"
-]
-authors = [
-    { name = "Fangwei Zhong", email = "zfw1226@gmail.com" },
-    { name = "Kui Wu" }
-]
+name = "uav-flow-eval"
+version = "0.1.0.dev0"
+description = "UAV training environments and single-model closed-loop evaluation"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+license = "Apache-2.0 AND CC-BY-NC-4.0"
+license-files = ["LICENSE", "LICENSE-CONTENT"]
+dynamic = ["dependencies"]
 
-[tool.setuptools.package-data]
-"gym_unrealcv" = ["envs/setting/**/*"]
+[project.optional-dependencies]
+keyboard = ["pynput>=1.7,<2"]
+dev = ["pytest==9.2.0", "ruff==0.17.6", "mypy==2.4.1", "build==1.6.1"]
+
+[project.scripts]
+uav-flow = "uav_flow.cli:main"
 
 [tool.setuptools]
-packages = ["gym_unrealcv"]
+package-dir = {"" = "src"}
+py-modules = ["env_server"]
+include-package-data = true
 
 [tool.setuptools.dynamic]
-version = {attr = "gym_unrealcv.__version__"}
+dependencies = {file = ["requirements.txt"]}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["uav_flow*", "gym_unrealcv*", "check*", "evaluation*", "tools*", "training_tasks*"]
+namespaces = false
+
+[tool.setuptools.package-data]
+gym_unrealcv = ["envs/setting/**/*.json"]
+training_tasks = ["tasks.json", "task_categories.json"]
+evaluation = ["classified_instr.json", "test_jsons/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "--import-mode=importlib --strict-markers -ra"
+markers = [
+    "unit: deterministic tests without a real simulator",
+    "integration: isolated HTTP/subprocess/runtime tests without a real simulator",
+    "simulator: opt-in tests requiring a private UE instance (never part of default CPU tests)",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+# Bootstrap scripts must add their source location before imports.
+"src/env_server.py" = ["E402"]
+"src/tools/*.py" = ["E402"]
+"src/evaluation/*.py" = ["E402"]
+"src/uav_flow/cli.py" = ["E402"]
+"tests/evaluation/*.py" = ["E402"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.mypy]
+python_version = "3.11"
+files = ["src/uav_flow", "src/gym_unrealcv/envs/runtime_policy.py"]
+mypy_path = "src"
+follow_imports = "skip"
+disallow_untyped_defs = true
+check_untyped_defs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
