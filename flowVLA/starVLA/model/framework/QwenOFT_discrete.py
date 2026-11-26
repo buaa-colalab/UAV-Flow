@@ -317,9 +317,9 @@ class Qwenvl_OFT(baseframework):
 
         return result
 
-    def sample_action_from_inputs(self, input_ids, attention_mask, pixel_values, proprio=None, **kwargs):
+    def sample_action_from_inputs(self, input_ids, attention_mask, pixel_values, proprio=None, do_sample=True, **kwargs):
         """
-        Sample actions directly from pre-processed tensors (used in RL rollout)
+        Select actions from pre-processed inputs; use do_sample=False for greedy validation.
         """
         # print('mode: rollout', 'temperature:', kwargs.get("temperature", 1.0))
         qwen_inputs = {
@@ -344,11 +344,14 @@ class Qwenvl_OFT(baseframework):
         #
         scaled_logits = pred_logits / temperature
 
-        # 从离散分布中采样
-        B, chunk_len, action_dim, num_bins = scaled_logits.shape
-        probs = F.softmax(scaled_logits.view(-1, num_bins), dim=-1)  # (B*chunk_len*action_dim, num_bins)
-        sampled_bins = torch.multinomial(probs, 1).squeeze(-1)  # (B*chunk_len*action_dim,)
-        sampled_bins = sampled_bins.view(B, chunk_len, action_dim)  # (B, chunk_len, action_dim)
+        if do_sample:
+            # Preserve temperature-scaled categorical exploration during training.
+            B, chunk_len, action_dim, num_bins = scaled_logits.shape
+            probs = F.softmax(scaled_logits.view(-1, num_bins), dim=-1)
+            sampled_bins = torch.multinomial(probs, 1).squeeze(-1)
+            sampled_bins = sampled_bins.view(B, chunk_len, action_dim)
+        else:
+            sampled_bins = pred_logits.argmax(dim=-1)
 
         # 将离散bins转换为连续动作值
         sampled_actions = self.discrete_to_continuous(sampled_bins)
