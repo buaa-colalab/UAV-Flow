@@ -126,10 +126,9 @@ class Qwenvl_OFT(baseframework):
         """
         if self.action_codec is not None:
             return self.action_codec.encode_normalized(actions)
-        # Legacy checkpoints retain their original label semantics.
         # 先将[-1, 1]映射到[0, 1]，然后乘以(num_bins-1)，再取整
         normalized = (actions + 1.0) / 2.0  # [-1, 1] -> [0, 1]
-        discrete = torch.clamp(torch.floor(normalized * (self.num_action_bins - 1)).long(), 0, self.num_action_bins - 1)
+        discrete = torch.clamp(torch.round(normalized * (self.num_action_bins - 1)).long(), 0, self.num_action_bins - 1)
         return discrete
 
     def discrete_to_continuous(self, discrete_actions: torch.Tensor) -> torch.Tensor:
@@ -144,7 +143,6 @@ class Qwenvl_OFT(baseframework):
         """
         if self.action_codec is not None:
             return self.action_codec.decode_normalized(discrete_actions)
-        # Legacy checkpoints retain their original label semantics.
         normalized = discrete_actions.float() / (self.num_action_bins - 1)  # [0, num_bins-1] -> [0, 1]
         continuous = normalized * 2.0 - 1.0  # [0, 1] -> [-1, 1]
         return continuous
